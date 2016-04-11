@@ -3,51 +3,43 @@
 #include <assert.h>
 
 static GLfloat s_vertex[] = {
-	-1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-	-1.0f, -1.0f, 0.0f, 0.0f, 1.0f,
-	1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-	1.0f, -1.0f, 0.0f, 1.0f, 1.0f,
+	-1.0f, 1.0f,
+	-1.0f, -1.0f,
+	1.0f, 1.0f,
+	1.0f, -1.0f,
+};
+
+static GLfloat s_texture[] = {
+	0.0f, 0.0f,
+	0.0f, 1.0f,
+	1.0f, 0.0f,
+	1.0f, 1.0f,
 };
 
 static void* plane_create()
 {
-	GLuint buffer;
-	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, 4 * 5 * sizeof(GLfloat), s_vertex, GL_STATIC_DRAW);
-
-	return (void*)buffer;
+	return (void*)1;
 }
 
 static void plane_destroy(void* p)
 {
-	GLuint buffer;
-	buffer = (GLuint)p;
-	glDeleteBuffers(1, &buffer);
+	(void)p;
 }
 
 static void plane_setup(void* p, GLuint v4Position, GLuint v2Texture)
 {
-	GLuint buffer;
-	buffer = (GLuint)p;
-
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glVertexAttribPointer(v4Position, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (const void*)0);
+	glVertexAttribPointer(v4Position, 2, GL_FLOAT, GL_FALSE, 0, s_vertex);
 	glEnableVertexAttribArray(v4Position);
-	glVertexAttribPointer(v2Texture, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (const void*)(3 * sizeof(GLfloat)));
+	glVertexAttribPointer(v2Texture, 2, GL_FLOAT, GL_FALSE, 0, s_texture);
 	glEnableVertexAttribArray(v2Texture);
-//	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void IJK_GLES2_Matrix_Ortho(GLfloat *matrix, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near, GLfloat far);
 static void plane_draw(void* p, GLsizei width, GLsizei height, GLuint mat4MVP, const GLfloat viewMatrix[16])
 {
 	(void)p;
-	GLfloat projMatrix[16] = { 0 };
+	static GLfloat projMatrix[16] = { 0 };
 	IJK_GLES2_Matrix_Ortho(projMatrix, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
-
-	//GLfloat mvpMatix[16];
-	//IJK_GLES2_Matrix_MultiplyMM(mvpMatix, projMatrix, viewMatrix);
 
 	glViewport(0, 0, width, height);
 
