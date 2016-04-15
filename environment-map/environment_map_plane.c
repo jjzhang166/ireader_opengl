@@ -34,20 +34,18 @@ static void plane_setup(void* p, GLuint v4Position, GLuint v2Texture)
 	glEnableVertexAttribArray(v2Texture);
 }
 
-void IJK_GLES2_Matrix_Ortho(GLfloat *matrix, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near, GLfloat far);
-static void plane_draw(void* p, GLsizei width, GLsizei height, GLuint mat4MVP, const GLfloat viewMatrix[16])
+void opengl_matrix_ortho(GLfloat *matrix, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near, GLfloat far);
+static void plane_draw(void* p, GLuint mat4MVP, const GLfloat viewMatrix[16])
 {
 	(void)p;
 	static GLfloat projMatrix[16] = { 0 };
-	IJK_GLES2_Matrix_Ortho(projMatrix, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+	opengl_matrix_ortho(projMatrix, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 
-	glViewport(0, 0, width, height);
+//	glViewport(0, 0, width, height); // setting in IJK_EGL_prepareRenderer
 
 	glUniformMatrix4fv(mat4MVP, 1, GL_FALSE, projMatrix);
-	IJK_GLES2_checkError_TRACE("glUniformMatrix4fv(um4_mvp)");
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	IJK_GLES2_checkError_TRACE("glDrawArrays(GL_TRIANGLE_STRIP) plane");
 }
 
 environment_map_t* environment_map_plane()

@@ -1,7 +1,7 @@
 #include "environment_map.h"
-#include "ijksdl/ijksdl_log.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include <errno.h>
 #include <math.h>
@@ -23,7 +23,7 @@ static void spherical_get_positions(int stacks, int slices, GLfloat* positions)
 	int i;
 	int stack;
 	int slice;
-	double x, y, z;
+	double x, y, z, rxz;
 	double phi, theta;
 
 	i = 0;
@@ -33,12 +33,14 @@ static void spherical_get_positions(int stacks, int slices, GLfloat* positions)
 	{
 		phi = PI_2 - stack * PI / stacks;
 		y = sin(phi);
+		rxz = cos(phi);
+		assert(rxz >= 0);
 
 		for (slice = 0; slice <= slices; slice++)
 		{
 			theta = PI2 * slice / slices;
-			x = cos(phi) * sin(theta);
-			z = cos(phi) * cos(theta);
+			x = rxz * cos(theta);
+			z = rxz * sin(theta);
 
 			positions[i++] = (GLfloat)x;
 			positions[i++] = (GLfloat)y;
@@ -69,15 +71,15 @@ static void spherical_get_indices(int stacks, int slices, GLushort* indices)
 		{
 			if (0 != stack)
 			{
-				indices[i++] = (GLushort)(top + slice);
 				indices[i++] = (GLushort)(bot + slice);
+				indices[i++] = (GLushort)(top + slice);
 				indices[i++] = (GLushort)(top + slice + 1);
 			}
 
 			if (stack != stacks - 1)
 			{
-				indices[i++] = (GLushort)(top + slice + 1);
 				indices[i++] = (GLushort)(bot + slice);
+				indices[i++] = (GLushort)(top + slice + 1);
 				indices[i++] = (GLushort)(bot + slice + 1);
 			}
 		}
@@ -88,7 +90,6 @@ static void spherical_get_indices(int stacks, int slices, GLushort* indices)
 
 typedef struct _spherical_map_t
 {
-	int width, height;
 	//GLuint		av4_position;
 	//GLuint		av2_texture;
 	//GLfloat		vertex[N_VERTEX_COUNT * 5]; // x/y/z + u/v per vertex
@@ -149,6 +150,9 @@ static void spherical_setup(void* proj, GLuint v4Position, GLuint v2Texture)
 	//sphere->av2_texture = v2Texture;
 	//sphere->av4_position = v4Position;
 
+	glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CW);
+
 	glBindBuffer(GL_ARRAY_BUFFER, sphere->buffer[IDX_VERTEX_BUFFER]);
 	glVertexAttribPointer(v4Position, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (const void*)0);
 	glEnableVertexAttribArray(v4Position);
@@ -157,46 +161,50 @@ static void spherical_setup(void* proj, GLuint v4Position, GLuint v2Texture)
 //	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void IJK_GLES2_Matrix_Ortho(GLfloat *matrix, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near, GLfloat far);
-void IJK_GLES2_Matrix_MultiplyMM(GLfloat r[16], const GLfloat lhs[16], const GLfloat rhs[16]);
+void opengl_matrix_ortho(GLfloat m[16], GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near, GLfloat far);
+void opengl_matrix_perspective(GLfloat m[16], GLfloat fovy, GLfloat aspect, GLfloat near, GLfloat far);
+void opengl_matrix_multiply_mm(GLfloat m[16], const GLfloat lhs[16], const GLfloat rhs[16]);
+void opengl_matrix_scale(GLfloat m[16], GLfloat x, GLfloat y, GLfloat z);
+void opengl_matrix_translate(GLfloat m[16], GLfloat x, GLfloat y, GLfloat z);
 
-static void spherical_draw(void* proj, GLsizei width, GLsizei height, GLuint mat4MVP, const GLfloat viewMatrix[16])
+#define INTERPUPILLARY_DISTANCE	0.06f
+#define LENS_DIAMETER			0.025f	// 25MM
+
+static void spherical_draw(void* proj, GLuint mat4MVP, const GLfloat viewMatrix[16])
 {
 	spherical_map_t* sphere;	
+	GLfloat translateMatrix[16];
 	GLfloat scaleMatrix[16];
 	GLfloat projMatrix[16];
 	GLfloat mvpMatix[16];
+	GLint viewport[4];
 
 	sphere = (spherical_map_t*)proj;
-	if (0 != width)
-		sphere->width = width;
-	if (0 != height)
-		sphere->height = height;
+	glGetIntegerv(GL_VIEWPORT, viewport);
 
-	memset(scaleMatrix, 0, sizeof(scaleMatrix));
-	scaleMatrix[0] = 2.0f;
-	scaleMatrix[5] = 2.0f;
-	scaleMatrix[15] = 1.0f;
-	IJK_GLES2_Matrix_Ortho(projMatrix, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
-	IJK_GLES2_Matrix_MultiplyMM(mvpMatix, projMatrix, viewMatrix);
-	IJK_GLES2_Matrix_MultiplyMM(projMatrix, scaleMatrix, mvpMatix);
+	opengl_matrix_scale(scaleMatrix, 2.0f, 2.0f, 2.0f);
+	opengl_matrix_perspective(projMatrix, 90.0f, 1.0f * viewport[2] / viewport[3], 0.1, 10.0f);
+//	opengl_matrix_ortho(projMatrix, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f);
+	opengl_matrix_multiply_mm(mvpMatix, projMatrix, viewMatrix);
+//	opengl_matrix_multiply_mm(projMatrix, scaleMatrix, mvpMatix);
 
 	// left eye
-	glViewport(0, 0, width / 2, height);
+	glViewport(viewport[0], viewport[1], viewport[2] / 2, viewport[3]);
+	opengl_matrix_translate(translateMatrix, INTERPUPILLARY_DISTANCE/2, 0.0f, 0.0f);
+	opengl_matrix_multiply_mm(projMatrix, translateMatrix, mvpMatix);
 	glUniformMatrix4fv(mat4MVP, 1, GL_FALSE, projMatrix);
-	IJK_GLES2_checkError_TRACE("glUniformMatrix4fv(um4_mvp)");
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphere->buffer[IDX_INDEX_BUFFER]);
 	glDrawElements(GL_TRIANGLES, N_INDEX_COUNT, GL_UNSIGNED_SHORT, (const void*)0); 
-	IJK_GLES2_checkError_TRACE("glDrawElements");
 
 	// right eye
-	glViewport(width / 2, 0, width / 2, height);
-	//glUniformMatrix4fv(mat4MVP, 1, GL_FALSE, mvpMatrix);
-	//IJK_GLES2_checkError_TRACE("glUniformMatrix4fv(um4_mvp)");
+	glViewport(viewport[0] + viewport[2] / 2, viewport[1], viewport[2] / 2, viewport[3]);
+	opengl_matrix_translate(translateMatrix, -INTERPUPILLARY_DISTANCE / 2, 0.0f, 0.0f);
+	opengl_matrix_multiply_mm(projMatrix, translateMatrix, mvpMatix);
+	glUniformMatrix4fv(mat4MVP, 1, GL_FALSE, projMatrix);
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphere->buffer[IDX_INDEX_BUFFER]);
 	glDrawElements(GL_TRIANGLES, N_INDEX_COUNT, GL_UNSIGNED_SHORT, (const void*)0);
-	IJK_GLES2_checkError_TRACE("glDrawElements");
 }
 
 environment_map_t* environment_map_shperical()
