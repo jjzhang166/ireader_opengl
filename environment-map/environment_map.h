@@ -12,8 +12,7 @@ extern "C"
 	{
 		void* (*create)();
 		void (*destroy)(void* proj);
-		void (*setup)(void* proj, GLuint v4Position, GLuint v2Texture);
-		void (*draw)(void* proj, GLuint mat4MVP, const GLfloat viewMatrix[16]);
+		void (*draw)(void* proj, GLuint v4Position, GLuint v2Texture, GLuint mat4MVP, const GLfloat viewMatrix[16]);
 	} environment_map_t;
 
 	environment_map_t* environment_map_plane();
