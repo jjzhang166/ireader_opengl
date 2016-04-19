@@ -252,6 +252,7 @@ distortion_t* distortion_barrel()
 	static int i = 0;
 	if (0 == i)
 	{
+		i = 1;
 		assert(rectangle_vertex_count(ROW, COL) * 4 == sizeof(s_vertex) / sizeof(s_vertex[0]));
 		assert(rectangle_index_count(ROW, COL) == sizeof(s_index) / sizeof(s_index[0]));
 		rectangle_vertex(ROW, COL, s_vertex);

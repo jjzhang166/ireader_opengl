@@ -148,8 +148,8 @@ void sphere_index(int stacks, int slices, GLuint* indices);
 
 static void spherical_init()
 {
-	assert(sphere_vertex_count(N_SLICES, N_SLICES) * 5 == sizeof(s_vertex) / sizeof(s_vertex[0]));
-	assert(sphere_index_count(N_SLICES, N_SLICES) == sizeof(s_index) / sizeof(s_index[0]));
+	assert(sphere_vertex_count(N_STACKS, N_SLICES) * 5 == sizeof(s_vertex) / sizeof(s_vertex[0]));
+	assert(sphere_index_count(N_STACKS, N_SLICES) == sizeof(s_index) / sizeof(s_index[0]));
 	sphere_vertex(N_STACKS, N_SLICES, s_vertex);
 	sphere_index(N_STACKS, N_SLICES, s_index);
 }
