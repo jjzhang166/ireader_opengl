@@ -1,4 +1,4 @@
-#include "environment_map.h"
+#include "environment-map.h"
 #include <stdlib.h>
 #include <assert.h>
 
