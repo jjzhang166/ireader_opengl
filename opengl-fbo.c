@@ -1,13 +1,14 @@
 #include "opengl-fbo.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <memory.h>
 
 int opengl_fbo_create(struct opengl_fbo_t* fbo, int width, int height)
 {
 	GLenum errcode;
-	GLint framebuffer[1];
+	GLuint framebuffer[1];
 
-	glGetIntegerv(GL_FRAMEBUFFER_BINDING, framebuffer);
+	glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*)framebuffer);
 
 	glGenTextures(1, &fbo->texture);
 	glBindTexture(GL_TEXTURE_2D, fbo->texture);

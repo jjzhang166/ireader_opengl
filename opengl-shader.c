@@ -1,6 +1,7 @@
 #include "opengl-shader.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <memory.h>
 
 static GLuint opengl_load_shader(GLenum type, const char* string)
 {

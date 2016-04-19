@@ -42,7 +42,7 @@ static void barrel_distortion_after(void* distortion)
 	GLint viewport[4];
 	barrel_distortion_t* barrel;
 	barrel = (barrel_distortion_t*)distortion;
-	assert(barrel->program);
+	assert(barrel->shader.program);
 
 	if (0 == barrel->fbo.framebuffer)
 		return;
