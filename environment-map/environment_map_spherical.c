@@ -57,13 +57,13 @@ static void spherical_draw(void* proj, GLuint v4Position, GLuint v2Texture, GLui
 	glEnableVertexAttribArray(v2Texture);
 
 	glGetIntegerv(GL_VIEWPORT, viewport);
-	opengl_matrix_perspective(projMatrix, 90.0f, 1.0f * viewport[2] / viewport[3] / (sphere->vrmode+1), 0.01, 10.0f);
+	opengl_matrix_perspective(projMatrix, 90.0f, 1.0f * viewport[2] / viewport[3] / (2 - sphere->vrmode), 0.01, 10.0f);
 //	opengl_matrix_ortho(projMatrix, -0.7071f, 0.7071f, -0.7071f, 0.7071f, 1.0f, 0.0f);
 //	opengl_matrix_ortho(projMatrix, -1.0f * ration, 1.0f * ration, -1.0f, 1.0f, 1.0f, -1.0f);
 	opengl_matrix_multiply_mm(mvpMatix, projMatrix, viewMatrix);
 
 	// left eye
-	glViewport(viewport[0], viewport[1], viewport[2] / (sphere->vrmode + 1), viewport[3]);
+	glViewport(viewport[0], viewport[1], viewport[2] / (2 - sphere->vrmode), viewport[3]);
 	opengl_matrix_translate(translateMatrix, INTERPUPILLARY_DISTANCE/2, 0.0f, 0.0f);
 	opengl_matrix_multiply_mm(projMatrix, translateMatrix, mvpMatix);
 	glUniformMatrix4fv(mat4MVP, 1, GL_FALSE, projMatrix);
@@ -72,7 +72,7 @@ static void spherical_draw(void* proj, GLuint v4Position, GLuint v2Texture, GLui
 	glDrawElements(GL_TRIANGLES, N_INDEX_COUNT, GL_UNSIGNED_INT, (const void*)0);
 
 	// right eye
-	if (sphere->vrmode)
+	if (0 == sphere->vrmode)
 	{
 		glViewport(viewport[0] + viewport[2] / 2, viewport[1], viewport[2] / 2, viewport[3]);
 		opengl_matrix_translate(translateMatrix, -INTERPUPILLARY_DISTANCE / 2, 0.0f, 0.0f);
