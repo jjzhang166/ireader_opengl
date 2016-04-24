@@ -16,7 +16,7 @@ extern "C"
 	} environment_map_t;
 
 	environment_map_t* environment_map_plane();
-	environment_map_t* environment_map_shperical();
+	environment_map_t* environment_map_spherical();
 	environment_map_t* environment_map_equirectangular();
 
 #if defined(__cplusplus) || defined(_cplusplus)

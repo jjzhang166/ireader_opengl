@@ -154,7 +154,7 @@ static void spherical_init()
 	sphere_index(N_STACKS, N_SLICES, s_index);
 }
 
-environment_map_t* environment_map_shperical()
+environment_map_t* environment_map_spherical()
 {
 	static environment_map_t s_map = 
 	{
