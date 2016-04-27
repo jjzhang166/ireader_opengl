@@ -6,8 +6,8 @@
 #include <errno.h>
 #include <math.h>
 
-#define N_STACKS				180
-#define N_SLICES				360
+#define N_STACKS				90
+#define N_SLICES				180
 #define N_VERTEX_COUNT			( ((N_STACKS) + 1) * ((N_SLICES) + 1) )
 #define N_INDEX_COUNT			( ((N_STACKS) - 1) * (N_SLICES) * 6 )
 
@@ -27,13 +27,13 @@ void opengl_matrix_translate(GLfloat m[16], GLfloat x, GLfloat y, GLfloat z);
 typedef struct _spherical_map_t
 {
 	//GLfloat		vertex[N_VERTEX_COUNT * 5]; // x/y/z + u/v per vertex
-	//GLfloat		index[N_INDEX_COUNT];
+	//GLushort		index[N_INDEX_COUNT];
 	int			vrmode;
 	GLuint		buffer[2];
 } spherical_map_t;
 
 static GLfloat s_vertex[N_VERTEX_COUNT * 5]; // x/y/z + u/v per vertex
-static GLuint s_index[N_INDEX_COUNT];
+static GLushort s_index[N_INDEX_COUNT];
 
 static void spherical_draw(void* proj, GLuint v4Position, GLuint v2Texture, GLuint mat4MVP, const GLfloat viewMatrix[16])
 {
@@ -46,7 +46,7 @@ static void spherical_draw(void* proj, GLuint v4Position, GLuint v2Texture, GLui
 
 	sphere = (spherical_map_t*)proj;
 	glGetIntegerv(GL_FRONT_FACE, frontface);
-//	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CW);
 
@@ -69,7 +69,7 @@ static void spherical_draw(void* proj, GLuint v4Position, GLuint v2Texture, GLui
 	glUniformMatrix4fv(mat4MVP, 1, GL_FALSE, projMatrix);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphere->buffer[IDX_INDEX_BUFFER]);
-	glDrawElements(GL_TRIANGLES, N_INDEX_COUNT, GL_UNSIGNED_INT, (const void*)0);
+	glDrawElements(GL_TRIANGLES, N_INDEX_COUNT, GL_UNSIGNED_SHORT, (const void*)0);
 
 	// right eye
 	if (0 == sphere->vrmode)
@@ -80,7 +80,7 @@ static void spherical_draw(void* proj, GLuint v4Position, GLuint v2Texture, GLui
 		glUniformMatrix4fv(mat4MVP, 1, GL_FALSE, projMatrix);
 
 		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphere->buffer[IDX_INDEX_BUFFER]);
-		glDrawElements(GL_TRIANGLES, N_INDEX_COUNT, GL_UNSIGNED_INT, (const void*)0);
+		glDrawElements(GL_TRIANGLES, N_INDEX_COUNT, GL_UNSIGNED_SHORT, (const void*)0);
 	}
 
 	glFrontFace(frontface[0]);
@@ -112,7 +112,7 @@ static void* spherical_create()
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphere->buffer[IDX_INDEX_BUFFER]);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, N_INDEX_COUNT * sizeof(GLuint), s_index, GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, N_INDEX_COUNT * sizeof(GLushort), s_index, GL_STATIC_DRAW);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 
@@ -144,7 +144,7 @@ void spherical_set_vrmode(void* p, unsigned int mode)
 GLsizei sphere_vertex_count(int stacks, int slices);
 GLsizei sphere_index_count(int stacks, int slices);
 void sphere_vertex(int stacks, int slices, GLfloat* positions);
-void sphere_index(int stacks, int slices, GLuint* indices);
+void sphere_index(int stacks, int slices, GLushort* indices);
 
 static void spherical_init()
 {

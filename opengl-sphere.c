@@ -51,7 +51,8 @@ void sphere_vertex(int stacks, int slices, GLfloat* positions)
 	assert(i == sphere_vertex_count(stacks, slices) * 5);
 }
 
-void sphere_index(int stacks, int slices, GLuint* indices)
+// glDrawElements type Must be GL_UNSIGNED_BYTE or GL_UNSIGNED_SHORT.
+void sphere_index(int stacks, int slices, GLushort* indices)
 {
 	int i, top, bot;
 	int stack;
@@ -69,16 +70,16 @@ void sphere_index(int stacks, int slices, GLuint* indices)
 		{
 			if (0 != stack)
 			{
-				indices[i++] = (GLuint)(bot + slice);
-				indices[i++] = (GLuint)(top + slice);
-				indices[i++] = (GLuint)(top + slice + 1);
+				indices[i++] = (GLushort)(bot + slice);
+				indices[i++] = (GLushort)(top + slice);
+				indices[i++] = (GLushort)(top + slice + 1);
 			}
 
 			if (stack != stacks - 1)
 			{
-				indices[i++] = (GLuint)(bot + slice);
-				indices[i++] = (GLuint)(top + slice + 1);
-				indices[i++] = (GLuint)(bot + slice + 1);
+				indices[i++] = (GLushort)(bot + slice);
+				indices[i++] = (GLushort)(top + slice + 1);
+				indices[i++] = (GLushort)(bot + slice + 1);
 			}
 		}
 	}
