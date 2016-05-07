@@ -7,6 +7,7 @@
 #include <memory.h>
 #include <string.h>
 #include <math.h>
+#include "internal.h"
 
 #define STRINGZ(x)	#x
 #define STRINGZ2(x)	STRINGZ(x)
@@ -15,8 +16,8 @@
 #define ROW 40
 #define COL 40
 
-#define BARREL_COEFFICIENT_K0 -250.0
-#define BARREL_COEFFICIENT_K1 -50000.0
+#define BARREL_COEFFICIENT_K0 0.005		//250.0
+#define BARREL_COEFFICIENT_K1 0.1		//50000.0
 
 #define ABS(x) ((x) < 0) ? (-1 * (x)) : (x)
 
@@ -39,7 +40,10 @@ typedef struct _barrel_distortion_t
 static void barrel_distortion_after(void* distortion)
 {
 	GLint program[1];
+	GLint texture[1];
 	GLint viewport[4];
+	GLint arraybuffer[1];
+	GLint elementarraybuffer[1];
 	barrel_distortion_t* barrel;
 	barrel = (barrel_distortion_t*)distortion;
 	assert(barrel->shader.program);
@@ -49,6 +53,9 @@ static void barrel_distortion_after(void* distortion)
 
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	glGetIntegerv(GL_CURRENT_PROGRAM, program);
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, texture);
+	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, arraybuffer);
+	glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, elementarraybuffer);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, barrel->framebuffer0);
 	glUseProgram(barrel->shader.program);
@@ -56,9 +63,9 @@ static void barrel_distortion_after(void* distortion)
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
 	glFrontFace(GL_CCW);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
 
 	glBindBuffer(GL_ARRAY_BUFFER, barrel->buffer[0]);
 	glVertexAttribPointer(barrel->pid, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GL_FLOAT), (const void*)0);
@@ -82,14 +89,14 @@ static void barrel_distortion_after(void* distortion)
 	// restore opengl context
 	glDisableVertexAttribArray(barrel->pid);
 	glDisableVertexAttribArray(barrel->tid);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);
 
 	//glEnable(GL_CULL_FACE);
 	//glEnable(GL_DEPTH_TEST);
 	glUseProgram(program[0]);
 	glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementarraybuffer[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, arraybuffer[0]);
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
 }
 
 static void barrel_distortion_before(void* distortion)
@@ -141,7 +148,7 @@ static const char* s_vertex_shader = STRING(
 
 	void main()
 	{
-		gl_Position = Distort(v_position);
+		gl_Position = v_position;
 		f_texture = v_texture;
 	}
 );
@@ -258,16 +265,17 @@ distortion_t* distortion_barrel()
 		rectangle_vertex(ROW, COL, s_vertex);
 		rectangle_index(ROW, COL, s_index);
 
-		//for (i = 0; i < rectangle_vertex_count(ROW, COL); i++)
-		//{
-		//	GLfloat radius, x, y;
-		//	x = s_vertex[i * 4 + 0];
-		//	y = s_vertex[i * 4 + 1];
-		//	radius = sqrt(x * x + y * y);
-		//	radius = barrel_distortion_distort(radius);
-		//	s_vertex[i * 4 + 0] *= radius;
-		//	s_vertex[i * 4 + 1] *= radius;
-		//}
+		for (i = 0; i < rectangle_vertex_count(ROW, COL); i++)
+		{
+			GLfloat radius, x, y;
+			x = s_vertex[i * 4 + 0];
+			y = s_vertex[i * 4 + 1];
+			radius = sqrt(x * x + y * y);
+			radius = radius > 0.0 ? barrel_distortion_distort_inverse(radius) / radius : 1.0;
+
+			s_vertex[i * 4 + 0] *= radius;
+			s_vertex[i * 4 + 1] *= radius;
+		}
 	}
 
 	return &s_barrel;

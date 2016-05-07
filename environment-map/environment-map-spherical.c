@@ -43,12 +43,15 @@ static void spherical_draw(void* proj, GLuint v4Position, GLuint v2Texture, GLui
 	GLfloat mvpMatix[16];
 	GLint viewport[4];
 	GLint frontface[1];
+	GLfloat ratio;
 
 	sphere = (spherical_map_t*)proj;
 	glGetIntegerv(GL_FRONT_FACE, frontface);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CW);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glBindBuffer(GL_ARRAY_BUFFER, sphere->buffer[IDX_VERTEX_BUFFER]);
 	glVertexAttribPointer(v4Position, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (const void*)0);
@@ -57,9 +60,10 @@ static void spherical_draw(void* proj, GLuint v4Position, GLuint v2Texture, GLui
 	glEnableVertexAttribArray(v2Texture);
 
 	glGetIntegerv(GL_VIEWPORT, viewport);
-	opengl_matrix_perspective(projMatrix, 90.0f, 1.0f * viewport[2] / viewport[3] / (2 - sphere->vrmode), 0.01, 10.0f);
+	ratio = 1.0f * viewport[2] / viewport[3] / (2 - sphere->vrmode);
+	opengl_matrix_perspective(projMatrix, 90.0f, ratio, 0.01, 10.0f);
 //	opengl_matrix_ortho(projMatrix, -0.7071f, 0.7071f, -0.7071f, 0.7071f, 1.0f, 0.0f);
-//	opengl_matrix_ortho(projMatrix, -1.0f * ration, 1.0f * ration, -1.0f, 1.0f, 1.0f, -1.0f);
+//	opengl_matrix_ortho(projMatrix, -0.7071f * ratio, 0.7071f * ratio, -0.7071f, 0.7071f, -0.1f, -1.0f);
 	opengl_matrix_multiply_mm(mvpMatix, projMatrix, viewMatrix);
 
 	// left eye

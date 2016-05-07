@@ -27,8 +27,8 @@ void rectangle_vertex(int row, int col, GLfloat vertices[])
 			vertices[i++] = 2 * u - 1.0f; // x-coordinate
 			vertices[i++] = 2 * v - 1.0f; // y-coordinate
 
-			vertices[i++] = u / 2; // texture-u
-			vertices[i++] = v / 2; // texture-v
+			vertices[i++] = u; // texture-u
+			vertices[i++] = v; // texture-v
 		}
 	}
 

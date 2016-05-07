@@ -6,10 +6,12 @@
 int opengl_fbo_create(struct opengl_fbo_t* fbo, int width, int height)
 {
 	GLenum errcode;
+	GLuint texture[1];
 	GLuint framebuffer[1];
 
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, (GLint*)texture);
 	glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*)framebuffer);
-
+	
 	glGenTextures(1, &fbo->texture);
 	glBindTexture(GL_TEXTURE_2D, fbo->texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -38,6 +40,7 @@ int opengl_fbo_create(struct opengl_fbo_t* fbo, int width, int height)
 	fbo->width = width;
 	fbo->height = height;
 
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[0]); // restore framebuffer
 	return (int)errcode;
 }
