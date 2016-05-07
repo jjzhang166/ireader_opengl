@@ -24,6 +24,8 @@ static void plane_draw(void* p, GLuint v4Position, GLuint v2Texture, GLuint mat4
 	static GLfloat projMatrix[16] = { 0 };
 	opengl_matrix_ortho(projMatrix, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 //	glViewport(0, 0, width, height); // setting in IJK_EGL_prepareRenderer
 //	glEnable(GL_CULL_FACE);
 //	glEnable(GL_DEPTH_TEST);

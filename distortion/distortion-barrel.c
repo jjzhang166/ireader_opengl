@@ -7,7 +7,6 @@
 #include <memory.h>
 #include <string.h>
 #include <math.h>
-#include "internal.h"
 
 #define STRINGZ(x)	#x
 #define STRINGZ2(x)	STRINGZ(x)
@@ -39,6 +38,7 @@ typedef struct _barrel_distortion_t
 
 static void barrel_distortion_after(void* distortion)
 {
+	GLint active[1];
 	GLint program[1];
 	GLint texture[1];
 	GLint viewport[4];
@@ -52,8 +52,8 @@ static void barrel_distortion_after(void* distortion)
 		return;
 
 	glGetIntegerv(GL_VIEWPORT, viewport);
+	glGetIntegerv(GL_ACTIVE_TEXTURE, active);
 	glGetIntegerv(GL_CURRENT_PROGRAM, program);
-	glGetIntegerv(GL_TEXTURE_BINDING_2D, texture);
 	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, arraybuffer);
 	glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, elementarraybuffer);
 
@@ -74,6 +74,7 @@ static void barrel_distortion_after(void* distortion)
 	glEnableVertexAttribArray(barrel->tid);
 
 	glActiveTexture(GL_TEXTURE0);
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, texture);
 	glBindTexture(GL_TEXTURE_2D, barrel->fbo.texture);
 	glUniform1i(barrel->uid, 0);
 
@@ -97,6 +98,7 @@ static void barrel_distortion_after(void* distortion)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementarraybuffer[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, arraybuffer[0]);
 	glBindTexture(GL_TEXTURE_2D, texture[0]);
+	glActiveTexture(active[0]);
 }
 
 static void barrel_distortion_before(void* distortion)
