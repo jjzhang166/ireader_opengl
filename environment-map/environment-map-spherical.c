@@ -35,7 +35,7 @@ typedef struct _spherical_map_t
 static GLfloat s_vertex[N_VERTEX_COUNT * 5]; // x/y/z + u/v per vertex
 static GLushort s_index[N_INDEX_COUNT];
 
-static void spherical_draw(void* proj, GLuint v4Position, GLuint v2Texture, GLuint mat4MVP, const GLfloat viewMatrix[16])
+static void spherical_draw(void* proj, GLuint v4Position, GLuint uViewMatrix, const GLfloat viewMatrix[16], GLuint v2Texture, GLuint uTextureMatrix, const GLfloat textureMatrix[16])
 {
 	spherical_map_t* sphere;
 	GLfloat translateMatrix[16];
@@ -70,7 +70,8 @@ static void spherical_draw(void* proj, GLuint v4Position, GLuint v2Texture, GLui
 	glViewport(viewport[0], viewport[1], viewport[2] / (2 - sphere->vrmode), viewport[3]);
 	opengl_matrix_translate(translateMatrix, INTERPUPILLARY_DISTANCE/2, 0.0f, 0.0f);
 	opengl_matrix_multiply_mm(projMatrix, translateMatrix, mvpMatix);
-	glUniformMatrix4fv(mat4MVP, 1, GL_FALSE, projMatrix);
+	glUniformMatrix4fv(uViewMatrix, 1, GL_FALSE, projMatrix);
+	glUniformMatrix4fv(uTextureMatrix, 1, GL_FALSE, textureMatrix);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphere->buffer[IDX_INDEX_BUFFER]);
 	glDrawElements(GL_TRIANGLES, N_INDEX_COUNT, GL_UNSIGNED_SHORT, (const void*)0);
@@ -81,7 +82,8 @@ static void spherical_draw(void* proj, GLuint v4Position, GLuint v2Texture, GLui
 		glViewport(viewport[0] + viewport[2] / 2, viewport[1], viewport[2] / 2, viewport[3]);
 		opengl_matrix_translate(translateMatrix, -INTERPUPILLARY_DISTANCE / 2, 0.0f, 0.0f);
 		opengl_matrix_multiply_mm(projMatrix, translateMatrix, mvpMatix);
-		glUniformMatrix4fv(mat4MVP, 1, GL_FALSE, projMatrix);
+		glUniformMatrix4fv(uViewMatrix, 1, GL_FALSE, projMatrix);
+		glUniformMatrix4fv(uTextureMatrix, 1, GL_FALSE, textureMatrix);
 
 		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphere->buffer[IDX_INDEX_BUFFER]);
 		glDrawElements(GL_TRIANGLES, N_INDEX_COUNT, GL_UNSIGNED_SHORT, (const void*)0);

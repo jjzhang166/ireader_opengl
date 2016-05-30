@@ -18,12 +18,9 @@ static GLfloat s_texture[] = {
 	1.0f, 1.0f,
 };
 
-static void plane_draw(void* p, GLuint v4Position, GLuint v2Texture, GLuint mat4MVP, const GLfloat viewMatrix[16])
+static void plane_draw(void* p, GLuint v4Position, GLuint uViewMatrix, const GLfloat viewMatrix[16], GLuint v2Texture, GLuint uTextureMatrix, const GLfloat textureMatrix[16])
 {
 	(void)p;
-	static GLfloat projMatrix[16] = { 0 };
-	opengl_matrix_ortho(projMatrix, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 //	glViewport(0, 0, width, height); // setting in IJK_EGL_prepareRenderer
@@ -37,7 +34,8 @@ static void plane_draw(void* p, GLuint v4Position, GLuint v2Texture, GLuint mat4
 	glVertexAttribPointer(v2Texture, 2, GL_FLOAT, GL_FALSE, 0, s_texture);
 	glEnableVertexAttribArray(v2Texture);
 
-	glUniformMatrix4fv(mat4MVP, 1, GL_FALSE, projMatrix);
+	glUniformMatrix4fv(uViewMatrix, 1, GL_FALSE, viewMatrix);
+	glUniformMatrix4fv(uTextureMatrix, 1, GL_FALSE, textureMatrix);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
